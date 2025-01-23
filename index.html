@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Juego de Dictado Mágico! 🎨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+
+        * {
+            font-family: 'Comic Neue', cursive;
+        }
+
+        .bubble {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .rainbow-text {
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: rainbow 5s ease infinite;
+            background-size: 400% 400%;
+        }
+
+        .magical-border {
+            border: 3px solid;
+            border-image: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff) 1;
+            animation: border-dance 3s ease infinite;
+        }
+
+        .bounce-button {
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .correct {
+            color: #22c55e;
+            text-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+
+        .incorrect {
+            color: #ef4444;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        body {
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+                    linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="absolute top-5 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div class="bubble absolute text-6xl" style="left: 10%; animation-delay: 0s">🦁</div>
+        <div class="bubble absolute text-6xl" style="left: 20%; animation-delay: 1s">🐢</div>
+        <div class="bubble absolute text-6xl" style="left: 80%; animation-delay: 2s">🦊</div>
+        <div class="bubble absolute text-6xl" style="left: 90%; animation-delay: 3s">🐜</div>
+    </div>
+
+    <div id="app" class="w-full max-w-3xl backdrop-blur-sm bg-white/90 p-8 rounded-2xl shadow-2xl magical-border relative z-10">
+        <!-- Pantalla inicial -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-5xl font-bold mb-8 rainbow-text">¡Juego de Dictado Mágico! ✨</h1>
+            <p class="text-2xl mb-8 text-indigo-600">¡Elige tu aventura mágica! 🎯</p>
+            <div class="space-y-4">
+                <button onclick="startGame('principiante')" 
+                        class="w-64 h-16 text-xl bounce-button bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                    🌟 Principiante
+                </button>
+                <br>
+                <button onclick="startGame('intermedio')" 
+                        class="w-64 h-16 text-xl bounce-button bg-gradient-to-r from-green-400 to-blue-500 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                    🚀 Intermedio
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla del juego -->
+        <div id="game-screen" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-indigo-600">
+                    Nivel: <span id="difficulty" class="rainbow-text"></span>
+                </h2>
+                <div class="text-xl">
+                    ⏳ Tiempo: <span id="timer" class="font-bold text-purple-600">00:00</span>
+                </div>
+            </div>
+            
+            <div id="text-container" class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl shadow-inner mb-8 text-lg leading-relaxed">
+            </div>
+
+            <textarea id="input" 
+                      placeholder="¡Escribe la historia aquí! ✍️" 
+                      class="w-full border-4 border-purple-300 p-4 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-200 focus:border-purple-400 text-lg transition-all duration-300" 
+                      rows="4" 
+                      oninput="checkInput()">
+            </textarea>
+
+            <button onclick="returnToStart()" 
+                    class="mt-6 bg-gradient-to-r from-red-400 to-red-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                🏠 Volver al Inicio
+            </button>
+        </div>
+
+        <!-- Modal -->
+        <div id="modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md mx-4 transform transition-all scale-90 hover:scale-100">
+                <h2 id="modal-message" class="text-3xl font-bold mb-6 rainbow-text"></h2>
+                <button id="modal-button" 
+                        onclick="restartGame()" 
+                        class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                    ¡Otra Aventura! 🎮
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
